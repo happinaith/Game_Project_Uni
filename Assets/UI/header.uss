@@ -1,0 +1,20 @@
+.header {
+}
+
+.button {
+    font-size: 30px;
+    color: rgb(4, 5, 4);
+    width: 220px;
+    height: 60px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-top-color: rgba(67, 207, 40, 0);
+    -unity-text-outline-color: rgba(76, 204, 92, 0);
+    -unity-background-image-tint-color: rgb(75, 0, 255);
+    -unity-font-style: bold;
+    justify-content: center;
+    align-items: stretch;
+    align-self: center;
+}

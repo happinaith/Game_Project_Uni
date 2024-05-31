@@ -4,82 +4,60 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField]private float moveSpeed = 2f;
+    [SerializeField] private float playerSpeed;
+    private Rigidbody playerRB;
+    
+    private Vector3 moveInput;
+    private Vector3 moveVel;
 
-    [SerializeField] private GameInput gameInput;
+    private Camera mainCam;
 
-    private bool isWalking;
+    public GameObject bulletSpawnPoint;
+    public float waitTime;
+    public GameObject bullet;
+    public bool hasHammer = false;
 
-    // Update is called once per frame
+    void Start()
+    {
+        playerRB = GetComponent<Rigidbody>();
+        mainCam = FindObjectOfType<Camera>();
+    }
+
     void Update()
     {
-        HandleMovement();
-        HandleInteractions();
-    }
+        moveInput = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical")).normalized;
+        moveVel = playerSpeed * moveInput;
 
-    public bool IsWalking()
-    {
-        return isWalking;
-    }
+        Ray cameraRay = mainCam.ScreenPointToRay(Input.mousePosition);
+        Plane ground = new Plane(Vector3.up, Vector3.zero);
+        float rayLength;
 
-    private void HandleInteractions()
-    {
-        UnityEngine.Vector2 inputVector = gameInput.GetMovementVectorNormalized();
-
-        UnityEngine.Vector3 moveDir = new UnityEngine.Vector3(inputVector.x, 0f, inputVector.y);
-
-        float interactDistance = 2f;
-        Physics.Raycast(transform.position, moveDir, out RaycastHit raycastHit,interactDistance);
-    }
-
-    private void HandleMovement()
-    {
-        UnityEngine.Vector2 inputVector = gameInput.GetMovementVectorNormalized();
-
-        UnityEngine.Vector3 moveDir = new UnityEngine.Vector3(inputVector.x, 0f, inputVector.y);
-
-        float playerRadius = .7f;
-        float playerHeight = 2f;
-        float moveDistance = moveSpeed * Time.deltaTime;
-
-        bool canWalk = !Physics.CapsuleCast(transform.position, transform.position + UnityEngine.Vector3.up * playerHeight, playerRadius, moveDir, moveDistance);
-
-
-        if (!canWalk)
+        if (ground.Raycast(cameraRay, out rayLength))
         {
+            Vector3 pointToLook = cameraRay.GetPoint(rayLength);
+            Debug.DrawLine(cameraRay.origin, pointToLook, Color.green);
 
-            UnityEngine.Vector3 moveDirx = new UnityEngine.Vector3(moveDir.x,0,0).normalized;
-            canWalk = !Physics.CapsuleCast(transform.position, transform.position + UnityEngine.Vector3.up * playerHeight, playerRadius, moveDirx, moveDistance);
-
-            if (canWalk)
-            {
-                moveDir = moveDirx;
-            }
-            else
-            {
-                UnityEngine.Vector3 moveDirZ = new UnityEngine.Vector3(0,0,moveDir.z).normalized;
-                canWalk = !Physics.CapsuleCast(transform.position, transform.position + UnityEngine.Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
-
-                if (canWalk)
-                {
-                    moveDir = moveDirZ;
-                }
-                else
-                {
-                    // cannot move in any direction
-                }
-            }
+            transform.LookAt(new Vector3(pointToLook.x, transform.position.y, pointToLook.z));
         }
-        
-        if (canWalk)
+
+        if (Input.GetMouseButtonDown(0))
         {
-            transform.position += moveDir * moveDistance;
+            Shoot();
         }
-        
-        isWalking = moveDir != UnityEngine.Vector3.zero;
+    }
 
-        float rotateSpeed = 10f;
+    void FixedUpdate()
+    {
+        playerRB.velocity = moveVel;
+    }
 
-        transform.forward = UnityEngine.Vector3.Slerp( transform.forward, moveDir, Time.deltaTime * rotateSpeed);
+    void Shoot()
+    {
+        Instantiate(bullet, bulletSpawnPoint.transform.position, bulletSpawnPoint.transform.rotation);
+    }
+
+    public void TakeHammer()
+    {
+        hasHammer = true;
     }
 }
